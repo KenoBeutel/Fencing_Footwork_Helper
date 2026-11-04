@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+</style>
+<title>Fechtschritt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Saira+Condensed:wght@700;800&display=swap">
+<style>
+/* Layout: eine Spalte, drei Einstellungen, ein Knopf. Im Training nur das Kommando, groß. */
+:root{
+  --bg:#F2F4F3; --ink:#121917; --muted:#64716D; --line:#D3DAD7; --go:#147F45; --go-ink:#FFFFFF;
+  --f-display:"Saira Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1413; --ink:#E6ECEA; --muted:#8E9B97; --line:#2A3532; --go:#38CF7B; --go-ink:#05200F; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1413; --ink:#E6ECEA; --muted:#8E9B97; --line:#2A3532; --go:#38CF7B; --go-ink:#05200F; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--go);outline-offset:3px}
+
+.screen{max-width:420px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:36px;padding-block:40px}
+h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;margin:0}
+.sub{color:var(--muted);margin:8px 0 0}
+
+.field{display:grid;gap:10px}
+.label{font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.weeks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.week{border:1px solid var(--line);border-radius:8px;background:none;padding:10px 0;cursor:pointer;
+  font-family:var(--f-display);font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.week[aria-checked="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.week:disabled{border-style:dashed;color:var(--line);cursor:not-allowed}
+.legend{margin:0;color:var(--muted);font-size:.95rem}
+.legend b{color:var(--ink)}
+.new{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--go);margin-left:4px}
+.seg input:disabled + span{opacity:.4;cursor:not-allowed}
+.seg label{position:relative;cursor:pointer}
+.seg label + label{border-left:1px solid var(--line)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:12px 4px;text-align:center;font-weight:700}
+.seg input:checked + span{background:var(--ink);color:var(--bg)}
+.seg input:focus-visible + span{outline:3px solid var(--go);outline-offset:-3px}
+
+.start{border:0;border-radius:12px;padding:18px;background:var(--go);color:var(--go-ink);cursor:pointer;
+  font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:.06em;text-transform:uppercase}
+
+/* Training */
+#run{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(16px,env(safe-area-inset-left,0px));
+  cursor:pointer;user-select:none;-webkit-user-select:none}
+.time{font-family:var(--f-display);font-weight:700;font-size:1.8rem;font-variant-numeric:tabular-nums;color:var(--muted)}
+.cmd{font-family:var(--f-display);font-weight:800;text-transform:uppercase;text-align:center;line-height:.9;
+  font-size:clamp(4.5rem,20vw,12rem);transition:color .15s}
+.cmd.hit{color:var(--go)}
+.mid{display:grid;gap:10px;justify-items:center}
+.detail{color:var(--muted);font-size:1.15rem;min-height:1.6em;text-align:center}
+.paused .cmd{color:var(--muted)}
+.bottom{display:grid;gap:12px;justify-items:center}
+.hint{color:var(--muted);font-size:.95rem}
+.stop{background:none;border:1px solid var(--line);border-radius:10px;padding:10px 22px;font-weight:700;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<main class="screen" id="setup">
+  <div>
+    <h1>Fechtschritt</h1>
+    <p class="sub">Die App sagt an, du bewegst dich.</p>
+  </div>
+
+  <div class="field">
+    <span class="label">Kurswoche</span>
+    <div class="weeks" id="weeks" role="radiogroup" aria-label="Kurswoche"></div>
+    <p class="legend" id="legend"></p>
+  </div>
+
+  <div class="field">
+    <span class="label">Waffe</span>
+    <div class="seg two" role="radiogroup" aria-label="Waffe">
+      <label><input type="radio" name="waffe" value="ohne" id="w0"><span>Ohne · nur Beine</span></label>
+      <label><input type="radio" name="waffe" value="mit" id="w1"><span>Mit · Beine und Arm</span></label>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label">Tempo</span>
+    <div class="seg" role="radiogroup" aria-label="Tempo">
+      <label><input type="radio" name="tempo" value="langsam" id="t1"><span>Langsam</span></label>
+      <label><input type="radio" name="tempo" value="mittel" id="t2"><span>Mittel</span></label>
+      <label><input type="radio" name="tempo" value="schnell" id="t3"><span>Schnell</span></label>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label">Dauer</span>
+    <div class="seg" role="radiogroup" aria-label="Dauer">
+      <label><input type="radio" name="dauer" value="1" id="d1"><span>1 Min</span></label>
+      <label><input type="radio" name="dauer" value="3" id="d3"><span>3 Min</span></label>
+      <label><input type="radio" name="dauer" value="5" id="d5"><span>5 Min</span></label>
+    </div>
+  </div>
+
+  <div class="field">
+    <span class="label">Platz</span>
+    <div class="seg" role="radiogroup" aria-label="Platz">
+      <label><input type="radio" name="platz" value="2" id="p2"><span>2 m</span></label>
+      <label><input type="radio" name="platz" value="4" id="p4"><span>4 m</span></label>
+      <label><input type="radio" name="platz" value="6" id="p6"><span>6 m</span></label>
+    </div>
+  </div>
+
+  <button class="start" id="startBtn" type="button">Start</button>
+</main>
+
+<div id="run" hidden>
+  <div class="time" id="time">0:00</div>
+  <div class="mid"><div class="cmd" id="cmd" aria-live="assertive">3</div><div class="detail" id="detail"></div></div>
+  <div class="bottom">
+    <span class="hint" id="hint">Tippen zum Pausieren</span>
+    <button class="stop" id="stopBtn" type="button">Beenden</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s);};
+/* Alle Aktionen, die die App kennt. w = wie oft sie relativ vorkommt. */
+var ACTIONS={
+  vor:{say:"Vor", dx:60, dur:800, w:2},
+  zurueck:{say:"Zurück", dx:-60, dur:800, w:2},
+  stoss:{say:"Stoß", dx:0, dur:700, hit:true, w:1},
+  vorStoss:{say:"Angriff", detail:"Stoß mit Schritt vor", dx:60, dur:1100, hit:true, w:1},
+  zurueckStoss:{say:"Konter", detail:"Stoß mit Schritt zurück", dx:-60, dur:1100, hit:true, w:1}
+};
+
+/* Kursplan: pro Woche die NEUEN Aktionen plus passende Voreinstellungen.
+   Aktionen gelten ab ihrer Woche für alle folgenden Wochen.
+   Wochen, die hier fehlen, erscheinen gesperrt. */
+var WEEKS = {
+  1:{neu:["vor","zurueck"], waffe:"ohne", tempo:"langsam"},
+  2:{neu:["vorStoss"], waffe:"mit", tempo:"langsam"}
+};
+var TOTAL_WEEKS = 15;
+var lastWeek = Math.max.apply(null, Object.keys(WEEKS).map(Number));
+function weekActions(n){
+  var list=[]; for(var i=1;i<=n;i++){ if(WEEKS[i]) list=list.concat(WEEKS[i].neu); } return list;
+}
+
+var TEMPO={langsam:{gap:2000,scale:1.3}, mittel:{gap:1100,scale:1.1}, schnell:{gap:500,scale:1}};
+var cfg={woche:lastWeek, waffe:"mit", tempo:"langsam", dauer:"3", platz:"4"};
+try{ Object.assign(cfg, JSON.parse(localStorage.getItem("fs-min")||"{}")); }catch(e){}
+cfg.woche = +cfg.woche; if(!WEEKS[cfg.woche]) cfg.woche = lastWeek;
+function save(){ try{ localStorage.setItem("fs-min",JSON.stringify(cfg)); }catch(e){} }
+function syncRadios(){
+  ["waffe","tempo","dauer","platz"].forEach(function(n){
+    var el=document.querySelector('input[name="'+n+'"][value="'+cfg[n]+'"]'); if(el) el.checked=true;
+  });
+  var hasArm = weekActions(cfg.woche).some(function(k){ return ACTIONS[k].hit; });
+  $("#w1").disabled = !hasArm;
+  if(!hasArm){ cfg.waffe="ohne"; $("#w0").checked=true; }
+}
+function renderWeeks(){
+  var h="";
+  for(var n=1;n<=TOTAL_WEEKS;n++){
+    var on = !!WEEKS[n];
+    h += '<button type="button" class="week" role="radio" data-week="'+n+'" aria-checked="'+(n===cfg.woche)+'"'+
+      (on?'':' disabled title="Noch nicht freigeschaltet"')+' aria-label="Woche '+n+'">'+n+'</button>';
+  }
+  $("#weeks").innerHTML=h;
+}
+function activeActions(){
+  var list = weekActions(cfg.woche);
+  if(cfg.waffe==="ohne") list = list.filter(function(k){ return !ACTIONS[k].hit; });
+  return list;
+}
+function renderLegend(){
+  var neu = WEEKS[cfg.woche].neu;
+  $("#legend").innerHTML = activeActions().map(function(k){
+    var a=ACTIONS[k];
+    return "<b>"+a.say+"</b>"+(a.detail?" = "+a.detail:"")+(neu.indexOf(k)>=0?'<span class="new">neu</span>':"");
+  }).join("<br>");
+}
+$("#weeks").addEventListener("click",function(e){
+  var b=e.target.closest("[data-week]"); if(!b || b.disabled) return;
+  var n=+b.getAttribute("data-week"), w=WEEKS[n];
+  cfg.woche=n; cfg.waffe=w.waffe; cfg.tempo=w.tempo;
+  save(); renderWeeks(); syncRadios(); renderLegend();
+});
+document.addEventListener("change",function(e){
+  if(!e.target.name) return; cfg[e.target.name]=e.target.value;
+  save(); renderLegend();
+});
+renderWeeks(); syncRadios(); renderLegend();
+
+var HAS_SPEECH=("speechSynthesis" in window)&&("SpeechSynthesisUtterance" in window);
+var voice=null, actx=null;
+function pickVoice(){ try{ voice=speechSynthesis.getVoices().filter(function(v){return /^de/i.test(v.lang);})[0]||null; }catch(e){} }
+if(HAS_SPEECH){ pickVoice(); try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
+function beep(f,ms){
+  if(!actx) return;
+  try{ var o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;
+    o.frequency.value=f; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.25,t+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+ms/1000+0.02);
+  }catch(e){}
+}
+function say(text,fallbackFreq){
+  if(HAS_SPEECH){
+    try{ speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; if(voice) u.voice=voice; u.rate=1.05; speechSynthesis.speak(u); return; }catch(e){}
+  }
+  if(fallbackFreq) beep(fallbackFreq,140);
+}
+
+var S={};
+function sleep(ms){
+  return new Promise(function(res){
+    var left=ms, id=setInterval(function(){
+      if(S.stopped){clearInterval(id);res();return;}
+      if(!S.paused) left-=50;
+      if(left<=0){clearInterval(id);res();}
+    },50);
+  });
+}
+function fmt(s){ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
+function pick(){
+  var opts=[];
+  activeActions().forEach(function(k){
+    var a=ACTIONS[k], q=S.pos+a.dx;
+    if(q<0 || q>S.space) return;
+    for(var i=0;i<(a.w||1);i++) opts.push(k);
+  });
+  if(!opts.length) opts = S.pos > S.space/2 ? ["zurueck"] : ["vor"];
+  if(S.last && S.last===S.last2){
+    var other=opts.filter(function(o){ return o!==S.last; });
+    if(other.length) opts=other;
+  }
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+
+async function run(){
+  try{ var C=window.AudioContext||window.webkitAudioContext; if(C&&!actx) actx=new C(); if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
+  if(HAS_SPEECH){ try{ var u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){} }
+  var wl=null; try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(w){wl=w;}).catch(function(){}); }catch(e){}
+  var t=TEMPO[cfg.tempo];
+  S={stopped:false, paused:false, elapsed:0, total:+cfg.dauer*60, space:+cfg.platz*100, pos:+cfg.platz*50, last:null, last2:null};
+  $("#setup").hidden=true; $("#run").hidden=false; $("#run").classList.remove("paused");
+  $("#time").textContent=fmt(S.total); $("#hint").textContent="Fechtstellung einnehmen";
+  $("#detail").textContent=""; $("#cmd").classList.remove("hit");
+  for(var n=3;n>=1;n--){ if(S.stopped) return end(wl); $("#cmd").textContent=n; beep(620,100); await sleep(1000); }
+  $("#hint").textContent="Tippen zum Pausieren";
+  var lastT=performance.now();
+  S.tick=setInterval(function(){ var now=performance.now(); if(!S.paused) S.elapsed+=(now-lastT)/1000; lastT=now; $("#time").textContent=fmt(S.total-S.elapsed); },200);
+  while(!S.stopped && S.elapsed<S.total){
+    var k=pick(), a=ACTIONS[k];
+    S.last2=S.last; S.last=k;
+    var c=$("#cmd"); c.textContent=a.say; c.classList.toggle("hit",!!a.hit);
+    $("#detail").textContent=a.detail||"";
+    say(a.say, k==="stoss"?1180:k==="vorStoss"?1400:k==="zurueckStoss"?780:a.dx>0?1040:520);
+    await sleep(a.dur*t.scale);
+    S.pos+=a.dx;
+    await sleep(t.gap);
+  }
+  if(!S.stopped){ $("#cmd").textContent="Fertig"; $("#cmd").classList.remove("hit"); $("#detail").textContent=""; say("Fertig",880); await new Promise(function(r){setTimeout(r,1500);}); }
+  end(wl);
+}
+function end(wl){
+  S.stopped=true; clearInterval(S.tick);
+  try{ if(wl) wl.release(); }catch(e){}
+  try{ if(HAS_SPEECH) speechSynthesis.cancel(); }catch(e){}
+  $("#run").hidden=true; $("#setup").hidden=false; $("#startBtn").focus();
+}
+function togglePause(){
+  if(S.stopped || $("#run").hidden) return;
+  S.paused=!S.paused;
+  $("#run").classList.toggle("paused",S.paused);
+  $("#hint").textContent=S.paused?"Pausiert · tippen zum Weitermachen":"Tippen zum Pausieren";
+  if(S.paused){ try{ speechSynthesis.cancel(); }catch(e){} }
+}
+$("#startBtn").addEventListener("click",run);
+$("#stopBtn").addEventListener("click",function(e){ e.stopPropagation(); S.stopped=true; });
+$("#run").addEventListener("click",togglePause);
+document.addEventListener("keydown",function(e){ if(e.code==="Space" && !$("#run").hidden){ e.preventDefault(); togglePause(); } });
+})();
+</script>
+
+</body>
+</html>
