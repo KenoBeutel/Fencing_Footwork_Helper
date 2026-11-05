@@ -4,84 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 [hidden]{display:none!important}
 </style>
 <title>Fechtschritt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Saira+Condensed:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
 <style>
-/* Layout: eine Spalte, drei Einstellungen, ein Knopf. Im Training nur das Kommando, groß. */
+/* Layout: Plakat-Moderne. Weißer Grund, linksbündiger Textblock in Schwarz/Blau/Rot, flache Waffe als einziges Bild.
+   Rot = Glocke und Angriff, Blau = Klinge und Schritt. Bewusst nur ein helles Thema, wie gedrucktes Papier. */
 :root{
-  --bg:#F2F4F3; --ink:#121917; --muted:#64716D; --line:#D3DAD7; --go:#147F45; --go-ink:#FFFFFF;
-  --f-display:"Saira Condensed","Arial Narrow",Arial,sans-serif;
-  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --paper:#FFFFFF; --ink:#161616; --grey:#8C8C8C; --rule:#E2E2E2;
+  --red:#E3241B; --blue:#1C3DAE;
+  --f-serif:"Newsreader","Times New Roman",Times,serif;
+  --f-sans:"Hanken Grotesk","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0F1413; --ink:#E6ECEA; --muted:#8E9B97; --line:#2A3532; --go:#38CF7B; --go-ink:#05200F; color-scheme:dark }}
-:root[data-theme="dark"]{
-  --bg:#0F1413; --ink:#E6ECEA; --muted:#8E9B97; --line:#2A3532; --go:#38CF7B; --go-ink:#05200F; color-scheme:dark }
-
 *{box-sizing:border-box}
 html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+body{background:var(--paper);color:var(--ink);font-family:var(--f-sans);font-size:16px;line-height:1.4;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
 button{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--go);outline-offset:3px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
 
-.screen{max-width:420px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:36px;padding-block:40px}
-h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;text-transform:uppercase;letter-spacing:.02em;margin:0}
-.sub{color:var(--muted);margin:8px 0 0}
+.screen{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:30px;padding-block:28px 40px}
+.foil{display:block;width:100%;height:auto}
+.foil .guard,.foil .grip{fill:var(--red)}
+.foil .blade{fill:var(--blue)}
 
-.field{display:grid;gap:10px}
-.label{font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.weeks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.week{border:1px solid var(--line);border-radius:8px;background:none;padding:10px 0;cursor:pointer;
-  font-family:var(--f-display);font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}
-.week[aria-checked="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.week:disabled{border-style:dashed;color:var(--line);cursor:not-allowed}
-.legend{margin:0;color:var(--muted);font-size:.95rem}
-.legend b{color:var(--ink)}
-.new{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--go);margin-left:4px}
-.seg input:disabled + span{opacity:.4;cursor:not-allowed}
+.masthead{display:grid;gap:2px}
+.masthead h1{font-family:var(--f-serif);font-weight:400;font-size:2.7rem;line-height:1;letter-spacing:-.01em;margin:0 0 6px}
+.masthead .blue{color:var(--blue);font-size:1.45rem;font-weight:500;line-height:1.1}
+.masthead .red{color:var(--red);font-size:1.45rem;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums}
+
+.field{display:grid;gap:8px}
+.label{font-size:.78rem;font-weight:700;color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:4px 22px}
 .seg label{position:relative;cursor:pointer}
-.seg label + label{border-left:1px solid var(--line)}
 .seg input{position:absolute;opacity:0;pointer-events:none}
-.seg span{display:block;padding:12px 4px;text-align:center;font-weight:700}
-.seg input:checked + span{background:var(--ink);color:var(--bg)}
-.seg input:focus-visible + span{outline:3px solid var(--go);outline-offset:-3px}
+.seg span{display:block;padding:6px 0 5px;font-size:1.1rem;color:var(--grey);border-bottom:2px solid transparent}
+.seg input:checked + span{color:var(--blue);border-bottom-color:var(--blue)}
+.seg input:focus-visible + span{outline:2px solid var(--blue);outline-offset:2px}
+.seg input:disabled + span{color:var(--rule);cursor:not-allowed}
 
-.start{border:0;border-radius:12px;padding:18px;background:var(--go);color:var(--go-ink);cursor:pointer;
-  font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:.06em;text-transform:uppercase}
+.weeks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px 0}
+.week{background:none;border:0;padding:6px 0;cursor:pointer;font-size:1.2rem;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;text-align:left}
+.week[aria-checked="true"]{color:var(--red);font-weight:700}
+.week:disabled{color:var(--rule);cursor:not-allowed}
+.legend{margin:2px 0 0;font-size:.9rem;color:var(--ink)}
+.legend b{font-weight:700}
+.new{font-size:.72rem;font-weight:700;color:var(--red);margin-left:6px;letter-spacing:.04em}
+
+.start{border:0;border-radius:0;padding:16px 18px;background:var(--red);color:#FFFFFF;cursor:pointer;
+  font-size:1.35rem;font-weight:500;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.start::after{content:"→"}
+.start:hover{background:#C91D15}
+.foot{font-size:.72rem;line-height:1.35;color:var(--ink)}
 
 /* Training */
-#run{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-  padding:calc(env(safe-area-inset-top,0px) + 20px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) max(16px,env(safe-area-inset-left,0px));
+#run{position:fixed;inset:0;background:var(--paper);display:flex;flex-direction:column;justify-content:space-between;gap:16px;
+  padding:calc(env(safe-area-inset-top,0px) + 22px) max(20px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 22px) max(20px,env(safe-area-inset-left,0px));
   cursor:pointer;user-select:none;-webkit-user-select:none}
-.time{font-family:var(--f-display);font-weight:700;font-size:1.8rem;font-variant-numeric:tabular-nums;color:var(--muted)}
-.cmd{font-family:var(--f-display);font-weight:800;text-transform:uppercase;text-align:center;line-height:.9;
-  font-size:clamp(4.5rem,20vw,12rem);transition:color .15s}
-.cmd.hit{color:var(--go)}
-.cmd.note{color:var(--muted);font-size:clamp(3rem,13vw,7rem)}
-.mid{display:grid;gap:10px;justify-items:center}
-.detail{color:var(--muted);font-size:1.15rem;min-height:1.6em;text-align:center}
-.paused .cmd{color:var(--muted)}
-.bottom{display:grid;gap:12px;justify-items:center}
-.hint{color:var(--muted);font-size:.95rem}
-.stop{background:none;border:1px solid var(--line);border-radius:10px;padding:10px 22px;font-weight:700;cursor:pointer}
+.run-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.time{font-family:var(--f-serif);font-size:2rem;font-variant-numeric:tabular-nums}
+.run-week{color:var(--red);font-weight:500}
+.mid{display:grid;gap:10px}
+.cmd{font-weight:500;line-height:.9;letter-spacing:-.03em;color:var(--blue);
+  font-size:clamp(4.5rem,21vw,12rem);transition:color .12s;overflow-wrap:anywhere}
+.cmd.hit{color:var(--red)}
+.cmd.note{font-family:var(--f-serif);font-weight:400;font-style:italic;color:var(--ink);letter-spacing:0;font-size:clamp(3.2rem,14vw,7.5rem)}
+.paused .cmd{color:var(--rule)}
+.detail{font-size:1.05rem;min-height:1.5em;color:var(--ink)}
+
+.piste{position:relative;height:40px}
+.piste::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--rule)}
+.piste::after{content:"";position:absolute;left:0;right:0;top:calc(50% - 6px);height:12px;
+  border-left:1px solid var(--ink);border-right:1px solid var(--ink)}
+.marker{position:absolute;top:50%;width:150px;transform:translate(-50px,-50%);transition:left .45s ease}
+.marker svg{display:block;width:100%;height:auto;transition:transform .18s ease}
+.marker.lunge svg{transform:translateX(34px)}
+.piste-legend{display:flex;justify-content:space-between;font-size:.72rem;color:var(--grey);margin-top:4px}
+
+.bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.hint{font-size:.9rem;color:var(--grey)}
+.stop{background:none;border:0;border-bottom:1px solid var(--ink);padding:4px 0;cursor:pointer;font-weight:500}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 </head>
 <body>
 <main class="screen" id="setup">
-  <div>
+  <svg class="foil" viewBox="0 0 400 60" aria-hidden="true">
+    <rect class="grip" x="0" y="26" width="60" height="8"/>
+    <path class="guard" d="M60,3 A27,27 0 0 1 60,57 Z"/>
+    <path class="blade" d="M84,27.6 L400,29.7 L400,30.3 L84,32.4 Z"/>
+  </svg>
+
+  <div class="masthead">
     <h1>Fechtschritt</h1>
-    <p class="sub">Die App sagt an, du bewegst dich.</p>
+    <span class="blue">Fußarbeit für den Fechtkurs</span>
+    <span class="red" id="weekBig">Woche 1</span>
   </div>
 
   <div class="field">
@@ -92,9 +117,9 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;t
 
   <div class="field">
     <span class="label">Waffe</span>
-    <div class="seg two" role="radiogroup" aria-label="Waffe">
-      <label><input type="radio" name="waffe" value="ohne" id="w0"><span>Ohne · nur Beine</span></label>
-      <label><input type="radio" name="waffe" value="mit" id="w1"><span>Mit · Beine und Arm</span></label>
+    <div class="seg" role="radiogroup" aria-label="Waffe">
+      <label><input type="radio" name="waffe" value="ohne" id="w0"><span>Ohne, nur Beine</span></label>
+      <label><input type="radio" name="waffe" value="mit" id="w1"><span>Mit, Beine und Arm</span></label>
     </div>
   </div>
 
@@ -125,12 +150,22 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;t
     </div>
   </div>
 
-  <button class="start" id="startBtn" type="button">Start</button>
+  <button class="start" id="startBtn" type="button">Training starten</button>
+  <p class="foot">Platz frei räumen, kurz aufwärmen.<br>Tippen pausiert das Training, Leertaste ebenso.</p>
 </main>
 
 <div id="run" hidden>
-  <div class="time" id="time">0:00</div>
+  <div class="run-top"><span class="time" id="time">0:00</span><span class="run-week" id="runWeek"></span></div>
   <div class="mid"><div class="cmd" id="cmd" aria-live="assertive">3</div><div class="detail" id="detail"></div></div>
+  <div>
+    <div class="piste" id="piste">
+      <div class="marker" id="marker"><svg viewBox="0 0 400 60" aria-hidden="true" class="foil">
+        <rect class="grip" x="0" y="26" width="60" height="8"/>
+        <path class="guard" d="M60,3 A27,27 0 0 1 60,57 Z"/>
+        <path class="blade" d="M84,27.6 L400,29.7 L400,30.3 L84,32.4 Z"/></svg></div>
+    </div>
+    <div class="piste-legend"><span>hinten</span><span>vorn</span></div>
+  </div>
   <div class="bottom">
     <span class="hint" id="hint">Tippen zum Pausieren</span>
     <button class="stop" id="stopBtn" type="button">Beenden</button>
@@ -192,6 +227,7 @@ function activeActions(){
 }
 function renderLegend(){
   var neu = WEEKS[cfg.woche].neu;
+  $("#weekBig").textContent = "Woche "+cfg.woche+" von "+TOTAL_WEEKS;
   $("#legend").innerHTML = activeActions().map(function(k){
     var a=ACTIONS[k];
     return "<b>"+a.say+"</b>"+(a.detail?" = "+a.detail:"")+(neu.indexOf(k)>=0?'<span class="new">neu</span>':"");
@@ -256,6 +292,12 @@ function sleep(ms){
     },50);
   });
 }
+function showPos(){
+  var track=$("#piste").clientWidth, m=$("#marker");
+  var x = 50 + (S.pos/S.space)*(track-150);
+  m.style.left = x+"px";
+}
+function lunge(){ var m=$("#marker"); m.classList.add("lunge"); setTimeout(function(){ m.classList.remove("lunge"); },450); }
 function fmt(s){ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
 /* Verhältnis Schritte zu Angriffen:
    nach einem Angriff mindestens 2 Schritte, spätestens nach 4 Schritten kommt wieder einer,
@@ -290,7 +332,8 @@ async function run(){
   S={stopped:false, paused:false, elapsed:0, total:+cfg.dauer*60, space:+cfg.platz*100, pos:+cfg.platz*50, last:null, last2:null, sinceHit:0, nextPosture:POSTURE_EVERY};
   $("#setup").hidden=true; $("#run").hidden=false; $("#run").classList.remove("paused");
   $("#time").textContent=fmt(S.total); $("#hint").textContent="Fechtstellung einnehmen";
-  $("#detail").textContent=""; $("#cmd").classList.remove("hit");
+  $("#detail").textContent=""; $("#cmd").classList.remove("hit","note");
+  $("#runWeek").textContent="Woche "+cfg.woche; showPos();
   for(var n=3;n>=1;n--){ if(S.stopped) return end(wl); $("#cmd").textContent=n; beep(620,100); await sleep(1000); }
   $("#hint").textContent="Tippen zum Pausieren";
   var lastT=performance.now();
@@ -312,8 +355,9 @@ async function run(){
     c.textContent=a.say; c.classList.toggle("hit",!!a.hit);
     $("#detail").textContent=a.detail||"";
     say(a.say, k==="stoss"?1180:k==="vorStoss"?1400:k==="zurueckStoss"?780:a.dx>0?1040:520);
+    if(a.hit) lunge();
+    S.pos+=a.dx; showPos();
     await sleep(a.dur*t.scale);
-    S.pos+=a.dx;
     await sleep(t.gap);
   }
   if(!S.stopped){ $("#cmd").textContent="Fertig"; $("#cmd").classList.remove("hit","note"); $("#detail").textContent=""; say("Fertig",880); await new Promise(function(r){setTimeout(r,1500);}); }
