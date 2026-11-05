@@ -29,7 +29,7 @@ body{background:var(--paper);color:var(--ink);font-family:var(--f-sans);font-siz
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--blue);outline-offset:3px}
 
-.screen{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:30px;padding-block:28px 40px}
+.screen{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:34px;padding-block:28px 40px}
 .foil{display:block;width:100%;height:auto}
 .foil .guard,.foil .grip{fill:var(--red)}
 .foil .blade{fill:var(--blue)}
@@ -39,24 +39,37 @@ button{font:inherit;color:inherit}
 .masthead .blue{color:var(--blue);font-size:1.45rem;font-weight:500;line-height:1.1}
 .masthead .red{color:var(--red);font-size:1.45rem;font-weight:500;line-height:1.1;font-variant-numeric:tabular-nums}
 
-.field{display:grid;gap:8px}
-.label{font-size:.78rem;font-weight:700;color:var(--ink)}
-.seg{display:flex;flex-wrap:wrap;gap:4px 22px}
+.section{display:grid;gap:14px;border-top:2px solid var(--ink);padding-top:12px}
+.section h2{font-family:var(--f-serif);font-weight:400;font-size:1.5rem;line-height:1.1;margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.section h2 small{font-family:var(--f-sans);font-size:.8rem;color:var(--grey)}
+
+.weeks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.week{background:none;border:1px solid var(--ink);padding:8px 0;cursor:pointer;font-size:1.1rem;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;text-align:center}
+.week:hover:not(:disabled):not([aria-checked="true"]){border-color:var(--red);color:var(--red)}
+.week[aria-checked="true"]{background:var(--red);border-color:var(--red);color:#FFFFFF}
+.week:disabled{border-color:transparent;color:#C8C8C8;cursor:not-allowed}
+.weeks-note{font-size:.8rem;color:var(--grey);margin-top:-6px}
+.legend{margin:0;display:grid;gap:6px}
+.legend-title{font-size:.8rem;color:var(--grey)}
+.cmds{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:1.1rem}
+.cmds b{font-weight:500;color:var(--blue)}
+.cmds .hitw b{color:var(--red)}
+.cmds em{font-style:normal;font-size:.85rem;color:var(--ink)}
+.new{font-size:.68rem;font-weight:700;color:#FFFFFF;background:var(--red);padding:1px 5px;margin-left:6px;vertical-align:2px;letter-spacing:.04em}
+
+.settings{display:grid}
+.row{display:grid;grid-template-columns:5.5rem minmax(0,1fr);align-items:center;gap:12px;border-bottom:1px solid var(--rule);padding:4px 0}
+.row:last-child{border-bottom:0}
+.row .label{font-size:.9rem;color:var(--grey)}
+.seg{display:flex;flex-wrap:wrap;gap:0 20px}
 .seg label{position:relative;cursor:pointer}
 .seg input{position:absolute;opacity:0;pointer-events:none}
-.seg span{display:block;padding:6px 0 5px;font-size:1.1rem;color:var(--grey);border-bottom:2px solid transparent}
-.seg input:checked + span{color:var(--blue);border-bottom-color:var(--blue)}
+.seg span{display:block;padding:9px 0 7px;font-size:1.1rem;color:var(--ink);border-bottom:2px solid transparent}
+.seg label:hover span{color:var(--blue)}
+.seg input:checked + span{color:var(--blue);font-weight:700;border-bottom-color:var(--blue)}
 .seg input:focus-visible + span{outline:2px solid var(--blue);outline-offset:2px}
-.seg input:disabled + span{color:var(--rule);cursor:not-allowed}
-
-.weeks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px 0}
-.week{background:none;border:0;padding:6px 0;cursor:pointer;font-size:1.2rem;font-weight:500;color:var(--ink);
-  font-variant-numeric:tabular-nums;text-align:left}
-.week[aria-checked="true"]{color:var(--red);font-weight:700}
-.week:disabled{color:var(--rule);cursor:not-allowed}
-.legend{margin:2px 0 0;font-size:.9rem;color:var(--ink)}
-.legend b{font-weight:700}
-.new{font-size:.72rem;font-weight:700;color:var(--red);margin-left:6px;letter-spacing:.04em}
+.seg input:disabled + span{color:#C8C8C8;cursor:not-allowed}
 
 .start{border:0;border-radius:0;padding:16px 18px;background:var(--red);color:#FFFFFF;cursor:pointer;
   font-size:1.35rem;font-weight:500;text-align:left;display:flex;justify-content:space-between;align-items:center}
@@ -109,46 +122,41 @@ button{font:inherit;color:inherit}
     <span class="red" id="weekBig">Woche 1</span>
   </div>
 
-  <div class="field">
-    <span class="label">Kurswoche</span>
+  <section class="section">
+    <h2>Kurswoche wählen <small>stellt alles passend ein</small></h2>
     <div class="weeks" id="weeks" role="radiogroup" aria-label="Kurswoche"></div>
-    <p class="legend" id="legend"></p>
-  </div>
+    <span class="weeks-note" id="weeksNote"></span>
+    <div class="legend"><span class="legend-title" id="legendTitle"></span><div class="cmds" id="legend"></div></div>
+  </section>
 
-  <div class="field">
-    <span class="label">Waffe</span>
-    <div class="seg" role="radiogroup" aria-label="Waffe">
-      <label><input type="radio" name="waffe" value="ohne" id="w0"><span>Ohne, nur Beine</span></label>
-      <label><input type="radio" name="waffe" value="mit" id="w1"><span>Mit, Beine und Arm</span></label>
+  <section class="section">
+    <h2>Anpassen <small>optional</small></h2>
+    <div class="settings">
+      <div class="row"><span class="label">Waffe</span>
+        <div class="seg" role="radiogroup" aria-label="Waffe">
+          <label><input type="radio" name="waffe" value="ohne" id="w0"><span>Ohne</span></label>
+          <label><input type="radio" name="waffe" value="mit" id="w1"><span>Mit</span></label>
+        </div></div>
+      <div class="row"><span class="label">Tempo</span>
+        <div class="seg" role="radiogroup" aria-label="Tempo">
+          <label><input type="radio" name="tempo" value="langsam" id="t1"><span>Langsam</span></label>
+          <label><input type="radio" name="tempo" value="mittel" id="t2"><span>Mittel</span></label>
+          <label><input type="radio" name="tempo" value="schnell" id="t3"><span>Schnell</span></label>
+        </div></div>
+      <div class="row"><span class="label">Dauer</span>
+        <div class="seg" role="radiogroup" aria-label="Dauer">
+          <label><input type="radio" name="dauer" value="1" id="d1"><span>1 Min</span></label>
+          <label><input type="radio" name="dauer" value="3" id="d3"><span>3 Min</span></label>
+          <label><input type="radio" name="dauer" value="5" id="d5"><span>5 Min</span></label>
+        </div></div>
+      <div class="row"><span class="label">Platz</span>
+        <div class="seg" role="radiogroup" aria-label="Platz">
+          <label><input type="radio" name="platz" value="2" id="p2"><span>2 m</span></label>
+          <label><input type="radio" name="platz" value="4" id="p4"><span>4 m</span></label>
+          <label><input type="radio" name="platz" value="6" id="p6"><span>6 m</span></label>
+        </div></div>
     </div>
-  </div>
-
-  <div class="field">
-    <span class="label">Tempo</span>
-    <div class="seg" role="radiogroup" aria-label="Tempo">
-      <label><input type="radio" name="tempo" value="langsam" id="t1"><span>Langsam</span></label>
-      <label><input type="radio" name="tempo" value="mittel" id="t2"><span>Mittel</span></label>
-      <label><input type="radio" name="tempo" value="schnell" id="t3"><span>Schnell</span></label>
-    </div>
-  </div>
-
-  <div class="field">
-    <span class="label">Dauer</span>
-    <div class="seg" role="radiogroup" aria-label="Dauer">
-      <label><input type="radio" name="dauer" value="1" id="d1"><span>1 Min</span></label>
-      <label><input type="radio" name="dauer" value="3" id="d3"><span>3 Min</span></label>
-      <label><input type="radio" name="dauer" value="5" id="d5"><span>5 Min</span></label>
-    </div>
-  </div>
-
-  <div class="field">
-    <span class="label">Platz</span>
-    <div class="seg" role="radiogroup" aria-label="Platz">
-      <label><input type="radio" name="platz" value="2" id="p2"><span>2 m</span></label>
-      <label><input type="radio" name="platz" value="4" id="p4"><span>4 m</span></label>
-      <label><input type="radio" name="platz" value="6" id="p6"><span>6 m</span></label>
-    </div>
-  </div>
+  </section>
 
   <button class="start" id="startBtn" type="button">Training starten</button>
   <p class="foot">Platz frei räumen, kurz aufwärmen.<br>Tippen pausiert das Training, Leertaste ebenso.</p>
@@ -219,6 +227,7 @@ function renderWeeks(){
       (on?'':' disabled title="Noch nicht freigeschaltet"')+' aria-label="Woche '+n+'">'+n+'</button>';
   }
   $("#weeks").innerHTML=h;
+  $("#weeksNote").textContent = lastWeek<TOTAL_WEEKS ? "Ab Woche "+(lastWeek+1)+" werden die Wochen im Laufe des Kurses freigeschaltet." : "";
 }
 function activeActions(){
   var list = weekActions(cfg.woche);
@@ -228,10 +237,11 @@ function activeActions(){
 function renderLegend(){
   var neu = WEEKS[cfg.woche].neu;
   $("#weekBig").textContent = "Woche "+cfg.woche+" von "+TOTAL_WEEKS;
+  $("#legendTitle").textContent = "Das sagt die App an";
   $("#legend").innerHTML = activeActions().map(function(k){
     var a=ACTIONS[k];
-    return "<b>"+a.say+"</b>"+(a.detail?" = "+a.detail:"")+(neu.indexOf(k)>=0?'<span class="new">neu</span>':"");
-  }).join("<br>");
+    return '<span class="'+(a.hit?'hitw':'')+'"><b>'+a.say+'</b>'+(a.detail?' <em>'+a.detail+'</em>':'')+(neu.indexOf(k)>=0?'<span class="new">NEU</span>':'')+'</span>';
+  }).join("");
 }
 $("#weeks").addEventListener("click",function(e){
   var b=e.target.closest("[data-week]"); if(!b || b.disabled) return;
