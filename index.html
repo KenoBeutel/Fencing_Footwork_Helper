@@ -66,6 +66,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;t
 .cmd{font-family:var(--f-display);font-weight:800;text-transform:uppercase;text-align:center;line-height:.9;
   font-size:clamp(4.5rem,20vw,12rem);transition:color .15s}
 .cmd.hit{color:var(--go)}
+.cmd.note{color:var(--muted);font-size:clamp(3rem,13vw,7rem)}
 .mid{display:grid;gap:10px;justify-items:center}
 .detail{color:var(--muted);font-size:1.15rem;min-height:1.6em;text-align:center}
 .paused .cmd{color:var(--muted)}
@@ -219,7 +220,26 @@ function beep(f,ms){
     g.gain.exponentialRampToValueAtTime(0.0001,t+ms/1000); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+ms/1000+0.02);
   }catch(e){}
 }
+/* Eigene Sounds: Liegt eine Datei unter sounds/<name>.mp3, wird sie statt der Computerstimme abgespielt.
+   Fehlt sie, spricht die Browserstimme. */
+var SOUND_KEYS={"Vor":"vor","Zurück":"zurueck","Stoß":"stoss","Angriff":"angriff","Konter":"konter","Haltung korrigieren":"haltung","Fertig":"fertig"};
+var buffers={}, soundsLoaded=false;
+function loadSounds(){
+  if(soundsLoaded || !actx || !window.fetch) return; soundsLoaded=true;
+  Object.keys(SOUND_KEYS).forEach(function(text){
+    var key=SOUND_KEYS[text];
+    fetch("sounds/"+key+".mp3").then(function(r){ if(!r.ok) throw 0; return r.arrayBuffer(); })
+      .then(function(b){ return new Promise(function(res,rej){ actx.decodeAudioData(b,res,rej); }); })
+      .then(function(buf){ buffers[text]=buf; }).catch(function(){});
+  });
+}
+var current=null;
+function playBuffer(buf){
+  try{ if(current) current.stop(); }catch(e){}
+  try{ var s=actx.createBufferSource(); s.buffer=buf; s.connect(actx.destination); s.start(); current=s; return true; }catch(e){ return false; }
+}
 function say(text,fallbackFreq){
+  if(buffers[text] && playBuffer(buffers[text])) return;
   if(HAS_SPEECH){
     try{ speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(text); u.lang="de-DE"; if(voice) u.voice=voice; u.rate=1.05; speechSynthesis.speak(u); return; }catch(e){}
   }
@@ -237,27 +257,37 @@ function sleep(ms){
   });
 }
 function fmt(s){ s=Math.max(0,Math.ceil(s)); return Math.floor(s/60)+":"+("0"+(s%60)).slice(-2); }
+/* Verhältnis Schritte zu Angriffen:
+   nach einem Angriff mindestens 2 Schritte, spätestens nach 4 Schritten kommt wieder einer,
+   dazwischen mit 35 % Wahrscheinlichkeit. Ergibt etwa jede 3. bis 4. Ansage einen Angriff. */
+var ATTACK_MIN_GAP=2, ATTACK_MAX_GAP=4, ATTACK_CHANCE=0.35;
+function fitsSpace(k){ var q=S.pos+ACTIONS[k].dx; return q>=0 && q<=S.space; }
+function randomOf(list){ return list[Math.floor(Math.random()*list.length)]; }
 function pick(){
-  var opts=[];
-  activeActions().forEach(function(k){
-    var a=ACTIONS[k], q=S.pos+a.dx;
-    if(q<0 || q>S.space) return;
-    for(var i=0;i<(a.w||1);i++) opts.push(k);
-  });
-  if(!opts.length) opts = S.pos > S.space/2 ? ["zurueck"] : ["vor"];
+  var all=activeActions();
+  var steps=all.filter(function(k){ return !ACTIONS[k].hit && fitsSpace(k); });
+  var hits=all.filter(function(k){ return ACTIONS[k].hit && fitsSpace(k); });
+  var wantHit = hits.length && S.sinceHit>=ATTACK_MIN_GAP &&
+    (S.sinceHit>=ATTACK_MAX_GAP || Math.random()<ATTACK_CHANCE);
+  if(wantHit || !steps.length && hits.length) return randomOf(hits);
+  if(!steps.length) return S.pos > S.space/2 ? "zurueck" : "vor";
   if(S.last && S.last===S.last2){
-    var other=opts.filter(function(o){ return o!==S.last; });
-    if(other.length) opts=other;
+    var other=steps.filter(function(o){ return o!==S.last; });
+    if(other.length) steps=other;
   }
-  return opts[Math.floor(Math.random()*opts.length)];
+  return randomOf(steps);
 }
+
+/* Haltungshinweis alle 30 s Trainingszeit, danach 1,5 s zusätzliche Pause */
+var POSTURE_EVERY=30, POSTURE_EXTRA=1500;
 
 async function run(){
   try{ var C=window.AudioContext||window.webkitAudioContext; if(C&&!actx) actx=new C(); if(actx&&actx.state==="suspended") actx.resume(); }catch(e){}
+  loadSounds();
   if(HAS_SPEECH){ try{ var u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){} }
   var wl=null; try{ if(navigator.wakeLock) navigator.wakeLock.request("screen").then(function(w){wl=w;}).catch(function(){}); }catch(e){}
   var t=TEMPO[cfg.tempo];
-  S={stopped:false, paused:false, elapsed:0, total:+cfg.dauer*60, space:+cfg.platz*100, pos:+cfg.platz*50, last:null, last2:null};
+  S={stopped:false, paused:false, elapsed:0, total:+cfg.dauer*60, space:+cfg.platz*100, pos:+cfg.platz*50, last:null, last2:null, sinceHit:0, nextPosture:POSTURE_EVERY};
   $("#setup").hidden=true; $("#run").hidden=false; $("#run").classList.remove("paused");
   $("#time").textContent=fmt(S.total); $("#hint").textContent="Fechtstellung einnehmen";
   $("#detail").textContent=""; $("#cmd").classList.remove("hit");
@@ -266,16 +296,27 @@ async function run(){
   var lastT=performance.now();
   S.tick=setInterval(function(){ var now=performance.now(); if(!S.paused) S.elapsed+=(now-lastT)/1000; lastT=now; $("#time").textContent=fmt(S.total-S.elapsed); },200);
   while(!S.stopped && S.elapsed<S.total){
+    var c=$("#cmd");
+    if(S.elapsed>=S.nextPosture && S.total-S.elapsed>5){
+      S.nextPosture+=POSTURE_EVERY;
+      c.textContent="Haltung"; c.classList.remove("hit"); c.classList.add("note");
+      $("#detail").textContent="Knie beugen · Schultern locker";
+      say("Haltung korrigieren",660);
+      await sleep(t.gap+POSTURE_EXTRA);
+      c.classList.remove("note");
+      continue;
+    }
     var k=pick(), a=ACTIONS[k];
     S.last2=S.last; S.last=k;
-    var c=$("#cmd"); c.textContent=a.say; c.classList.toggle("hit",!!a.hit);
+    S.sinceHit = a.hit ? 0 : S.sinceHit+1;
+    c.textContent=a.say; c.classList.toggle("hit",!!a.hit);
     $("#detail").textContent=a.detail||"";
     say(a.say, k==="stoss"?1180:k==="vorStoss"?1400:k==="zurueckStoss"?780:a.dx>0?1040:520);
     await sleep(a.dur*t.scale);
     S.pos+=a.dx;
     await sleep(t.gap);
   }
-  if(!S.stopped){ $("#cmd").textContent="Fertig"; $("#cmd").classList.remove("hit"); $("#detail").textContent=""; say("Fertig",880); await new Promise(function(r){setTimeout(r,1500);}); }
+  if(!S.stopped){ $("#cmd").textContent="Fertig"; $("#cmd").classList.remove("hit","note"); $("#detail").textContent=""; say("Fertig",880); await new Promise(function(r){setTimeout(r,1500);}); }
   end(wl);
 }
 function end(wl){
